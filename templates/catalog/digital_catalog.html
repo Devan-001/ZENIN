@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block title %}Read – Zenin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Digital Reading Library</h1>
+  <p>Browse &amp; read manga, manhwa &amp; comics uploaded by our team.</p>
+</div>
+
+<div class="filter-bar">
+  <form method="get" class="filter-form" id="digitalFilterForm">
+    <input type="text" name="q" id="digitalSearchInput" value="{{ query }}" placeholder="Search titles..." class="search-input" autocomplete="off" list="digitalTitleSuggestions" />
+    <datalist id="digitalTitleSuggestions"></datalist>
+
+    <select name="category" id="digitalCategorySelect" class="select-input">
+      <option value="">All Categories</option>
+      {% for val, label in categories %}
+        <option value="{{ val }}" {% if selected_category == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    {% if query or selected_category %}
+      <a href="{% url 'digital_catalog' %}" class="btn btn-outline">Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+{% if books %}
+<div class="card-grid">
+  {% for book in books %}
+  <div class="card">
+    {% if book.cover_image %}
+      <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="card-img" />
+    {% else %}
+      <div class="card-img-placeholder">📖</div>
+    {% endif %}
+    <div class="card-body">
+      <span class="badge badge-{{ book.category|lower }}">{{ book.get_category_display }}</span>
+      <h3 class="card-title">{{ book.title }}</h3>
+      <p class="card-sub">{{ book.chapter_count }} chapters</p>
+      <p class="card-desc">{{ book.description|truncatechars:80 }}</p>
+      <a href="{% url 'digital_book_detail' book.pk %}" class="btn btn-sm btn-primary btn-full-card">
+        {% if user.is_authenticated %}📖 Read{% else %}👁 Preview{% endif %}
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+  <div class="empty-state"><p>No digital books found.</p></div>
+{% endif %}
+{{ all_book_titles|json_script:"digitalAllTitles" }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const form = document.getElementById('digitalFilterForm');
+    const searchInput = document.getElementById('digitalSearchInput');
+    const categorySelect = document.getElementById('digitalCategorySelect');
+    const datalist = document.getElementById('digitalTitleSuggestions');
+    const rawTitlesEl = document.getElementById('digitalAllTitles');
+    if (!form || !searchInput || !categorySelect || !datalist || !rawTitlesEl) return;
+
+    const allTitles = JSON.parse(rawTitlesEl.textContent || '[]');
+
+    function normalize(text) {
+      return String(text || '').toLowerCase().replace(/\s+/g, ' ').trim();
+    }
+
+    function rankTitles(query) {
+      const q = normalize(query);
+      if (!q) return [];
+      return allTitles
+        .map((title) => {
+          const normalizedTitle = normalize(title);
+          let score = 0;
+          if (normalizedTitle.startsWith(q)) score = 4;
+          else if (normalizedTitle.includes(' ' + q)) score = 3;
+          else if (normalizedTitle.includes(q)) score = 2;
+          return { title, score };
+        })
+        .filter((item) => item.score > 0)
+        .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title))
+        .slice(0, 8)
+        .map((item) => item.title);
+    }
+
+    function renderSuggestions(query) {
+      datalist.innerHTML = '';
+      rankTitles(query).forEach((title) => {
+        const option = document.createElement('option');
+        option.value = title;
+        datalist.appendChild(option);
+      });
+    }
+
+    categorySelect.addEventListener('change', () => form.submit());
+    searchInput.addEventListener('focus', () => {
+      if (!searchInput.value.trim()) datalist.innerHTML = '';
+    });
+    searchInput.addEventListener('click', () => {
+      if (!searchInput.value.trim()) datalist.innerHTML = '';
+    });
+    searchInput.addEventListener('input', () => renderSuggestions(searchInput.value));
+  })();
+</script>
+{% endblock %}

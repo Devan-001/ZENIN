@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Bulk Upload Chapters – {{ book.title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Bulk Upload Chapters – {{ book.title }}</h1>
+</div>
+
+<div class="form-card">
+  <form method="post" enctype="multipart/form-data" id="bulkChapterUploadForm">
+    {% csrf_token %}
+
+    <p class="help-text" style="margin-bottom:14px;">
+      Upload up to <strong>100</strong> chapter files in one go.
+      Supported formats: <strong>.pdf</strong>, <strong>.cbz</strong>.
+      If filename contains a number (example: <em>chapter_12.pdf</em>), that number is used as chapter number.
+      Otherwise, the next available chapter number is assigned.
+    </p>
+
+    {% for field in form %}
+    <div class="form-group">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}<small class="help-text">{{ field.help_text }}</small>{% endif %}
+      {% for err in field.errors %}<span class="field-error">{{ err }}</span>{% endfor %}
+    </div>
+    {% endfor %}
+
+    {% for err in form.non_field_errors %}<span class="field-error">{{ err }}</span>{% endfor %}
+
+    <div id="bulkFilePreviewList" class="file-preview-list"></div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Upload Chapters</button>
+      <a href="{% url 'chapter_list' book.pk %}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const bulkInput = document.getElementById('id_chapter_files');
+  const preview = document.getElementById('bulkFilePreviewList');
+
+  if (bulkInput) {
+    bulkInput.addEventListener('change', function () {
+      preview.innerHTML = '';
+      if (!this.files || this.files.length === 0) return;
+
+      const title = document.createElement('p');
+      title.textContent = `Selected files: ${this.files.length}`;
+      preview.appendChild(title);
+
+      const ul = document.createElement('ul');
+      ul.style.marginTop = '8px';
+      Array.from(this.files).forEach((f, i) => {
+        const li = document.createElement('li');
+        li.textContent = `${i + 1}. ${f.name}`;
+        ul.appendChild(li);
+      });
+      preview.appendChild(ul);
+    });
+  }
+</script>
+{% endblock %}

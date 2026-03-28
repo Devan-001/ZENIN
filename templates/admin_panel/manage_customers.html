@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Manage Customers – Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Manage Customers</h1>
+</div>
+
+{% if customers %}
+<div class="table-wrapper">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Joined</th>
+        <th>Orders</th>
+        <th>Total Spent</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for customer in customers %}
+      <tr>
+        <td>{{ customer.user.username }}</td>
+        <td>{{ customer.user.email }}</td>
+        <td>{{ customer.joined_at|date:"M d, Y" }}</td>
+        <td>{{ customer.order_count }}</td>
+        <td>₹{{ customer.total_spent|default:0|floatformat:2 }}</td>
+        <td>
+          {% if customer.user.is_active %}
+            <span class="badge badge-customer">Active</span>
+          {% else %}
+            <span class="badge badge-admin">Deactivated</span>
+          {% endif %}
+        </td>
+        <td class="action-cell">
+          <a href="{% url 'customer_purchase_history' customer.pk %}" class="btn btn-sm btn-outline">Purchase History</a>
+          <form method="post" action="{% url 'toggle_customer_status' customer.pk %}" style="display:inline;">
+            {% csrf_token %}
+            {% if customer.user.is_active %}
+              <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Deactivate this customer account?');">Deactivate</button>
+            {% else %}
+              <button type="submit" class="btn btn-sm btn-primary">Activate</button>
+            {% endif %}
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state"><p>No customers found.</p></div>
+{% endif %}
+{% endblock %}

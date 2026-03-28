@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}{{ book.title }} – Chapter {{ chapter.number }}{% endblock %}
+
+{% block content %}
+<div class="reader-header">
+  <a href="{% url 'digital_book_detail' book.pk %}" class="btn btn-outline btn-sm">← {{ book.title }}</a>
+  <h2>Chapter {{ chapter.number }}{% if chapter.title %}: {{ chapter.title }}{% endif %}</h2>
+  <div class="reader-nav">
+    {% if user.is_authenticated and user.is_customer %}
+      <a href="{% url 'download_chapter_pdf' book.pk chapter.number %}" class="btn btn-outline btn-sm">Download PDF</a>
+    {% endif %}
+    {% if prev_chapter %}
+      <a href="{% url 'read_chapter' book.pk prev_chapter.number %}" class="btn btn-outline btn-sm">‹ Ch.{{ prev_chapter.number }}</a>
+    {% endif %}
+    {% if next_chapter %}
+      <a href="{% url 'read_chapter' book.pk next_chapter.number %}" class="btn btn-primary btn-sm">Ch.{{ next_chapter.number }} ›</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="reader-pages" id="readerPages">
+  {% if pages %}
+    {% for page in pages %}
+      <div class="page-wrapper">
+        <img src="{{ page.image.url }}" alt="Page {{ page.page_number }}" class="manga-page" loading="lazy" />
+      </div>
+    {% endfor %}
+  {% elif chapter.chapter_file %}
+    {% if chapter_file_ext == 'pdf' %}
+      <div class="page-wrapper" style="width: 100%; max-width: 1000px;">
+        <iframe
+          src="{{ chapter.chapter_file.url }}"
+          title="Chapter PDF"
+          style="width: 100%; min-height: 80vh; border: 1px solid #2a2a2a; border-radius: 8px; background: #fff;"
+        ></iframe>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <p>This chapter is uploaded as <strong>{{ chapter_file_ext|upper }}</strong>.</p>
+        <a href="{{ chapter.chapter_file.url }}" class="btn btn-primary" target="_blank" rel="noopener">Download File</a>
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="empty-state"><p>No pages or chapter file uploaded for this chapter yet.</p></div>
+  {% endif %}
+</div>
+
+<div class="reader-footer">
+  {% if prev_chapter %}
+    <a href="{% url 'read_chapter' book.pk prev_chapter.number %}" class="btn btn-outline">‹ Previous Chapter</a>
+  {% endif %}
+  {% if next_chapter %}
+    <a href="{% url 'read_chapter' book.pk next_chapter.number %}" class="btn btn-primary">Next Chapter ›</a>
+  {% endif %}
+</div>
+{% endblock %}

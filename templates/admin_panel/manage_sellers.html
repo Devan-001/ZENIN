@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Manage Sellers – Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Manage Sellers</h1>
+  <a href="{% url 'admin_seller_requests' %}" class="btn btn-outline">View Approval Queue</a>
+</div>
+
+{% if sellers %}
+<div class="table-wrapper">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Shop Name</th>
+        <th>Seller</th>
+        <th>Email</th>
+        <th>License</th>
+        <th>Products</th>
+        <th>Total Orders</th>
+        <th>Total Sales</th>
+        <th>Account Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for seller in sellers %}
+      <tr>
+        <td>{{ seller.shop_name }}</td>
+        <td>{{ seller.user.username }}</td>
+        <td>{{ seller.user.email }}</td>
+        <td>
+          {% if seller.seller_license %}
+            <a href="{{ seller.seller_license.url }}" target="_blank" rel="noopener">View License</a>
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>{{ seller.total_products }}</td>
+        <td>{{ seller.total_orders }}</td>
+        <td>₹{{ seller.total_sales|default:0|floatformat:2 }}</td>
+        <td>
+          {% if seller.user.is_active %}
+            <span class="badge badge-customer">Active</span>
+          {% else %}
+            <span class="badge badge-admin">Suspended</span>
+          {% endif %}
+        </td>
+        <td>
+          <form method="post" action="{% url 'toggle_seller_status' seller.pk %}" style="display:inline;">
+            {% csrf_token %}
+            {% if seller.user.is_active %}
+              <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Suspend this seller account?');">Suspend</button>
+            {% else %}
+              <button type="submit" class="btn btn-sm btn-primary">Activate</button>
+            {% endif %}
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state"><p>No approved sellers found.</p></div>
+{% endif %}
+{% endblock %}

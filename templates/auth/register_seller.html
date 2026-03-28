@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Seller Registration – Zenin{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+  <div class="auth-card auth-card-wide">
+    <h2>Apply as a Seller</h2>
+    <p class="auth-sub">Fill in your details. An Admin will approve your request.</p>
+
+    <form method="post" enctype="multipart/form-data" id="sellerRegForm" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-group">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<small class="help-text">{{ field.help_text }}</small>{% endif %}
+        {% for err in field.errors %}<span class="field-error">{{ err }}</span>{% endfor %}
+      </div>
+      {% endfor %}
+
+      <div class="form-group" id="strengthGroup" style="display:none;">
+        <label>Password Strength</label>
+        <div class="strength-bar-container">
+          <div class="strength-bar" id="strengthBar"></div>
+        </div>
+        <small id="strengthLabel"></small>
+      </div>
+
+      <div class="info-box">
+        ⚠️ Your account will be <strong>pending review</strong>. You can log in only after Admin approval.
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full">Submit Application</button>
+    </form>
+
+    <div class="auth-links">
+      <p>Already approved? <a href="{% url 'login' %}">Login</a></p>
+      <p>Need another option? <a href="{% url 'register' %}">Choose Account Type</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  initRegisterValidation('sellerRegForm', {
+    passwordField: 'id_password1',
+    confirmField: 'id_password2',
+    emailField: 'id_email',
+    phoneField: 'id_phone_number',
+    strengthBar: 'strengthBar',
+    strengthLabel: 'strengthLabel',
+    strengthGroup: 'strengthGroup',
+  });
+</script>
+{% endblock %}

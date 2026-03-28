@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Support - Zenin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Customer Support</h1>
+  <p>Send feedback or complaints directly to admin.</p>
+</div>
+
+<div class="form-card" style="max-width: 760px; margin-bottom: 24px;">
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="form-group">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% for err in field.errors %}<span class="field-error">{{ err }}</span>{% endfor %}
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Send to Admin</button>
+  </form>
+</div>
+
+<section class="chapter-list-section">
+  <h2>My Previous Messages</h2>
+  {% if feedback_entries %}
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Subject</th>
+            <th>Status</th>
+            <th>Admin Reply</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in feedback_entries %}
+          <tr>
+            <td>{{ entry.get_feedback_type_display }}</td>
+            <td>{{ entry.subject }}</td>
+            <td>{{ entry.get_status_display }}</td>
+            <td>
+              {% if entry.admin_note %}
+                {{ entry.admin_note }}
+              {% else %}
+                <span class="empty-msg">Pending admin reply</span>
+              {% endif %}
+            </td>
+            <td>{{ entry.created_at|date:"M d, Y H:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="empty-msg">No messages sent yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

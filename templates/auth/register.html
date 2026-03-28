@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block title %}Choose Registration Type – Zenin{% endblock %}
+
+{% block extra_head %}
+<style>
+  .register-page {
+    max-width: 920px;
+    margin: 10px auto 28px;
+  }
+
+  .register-hero {
+    background: linear-gradient(135deg, #151922 0%, #1f2633 55%, #233556 100%);
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 14px;
+    padding: 34px 28px;
+    margin-bottom: 18px;
+    text-align: center;
+  }
+
+  .register-hero h1 {
+    font-size: 1.9rem;
+    margin-bottom: 8px;
+    letter-spacing: .2px;
+  }
+
+  .register-hero p {
+    color: #cfd4e2;
+    font-size: .95rem;
+    margin: 0;
+  }
+
+  .register-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .register-option {
+    background: linear-gradient(180deg, #1b1f27 0%, #171a22 100%);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    min-height: 230px;
+  }
+
+  .register-option h2 {
+    font-size: 1.25rem;
+    margin: 2px 0 10px;
+  }
+
+  .register-option p {
+    color: var(--text-muted);
+    line-height: 1.55;
+    font-size: .9rem;
+    margin-bottom: 16px;
+  }
+
+  .register-meta {
+    font-size: .78rem;
+    color: #96a0b7;
+    margin-bottom: 14px;
+  }
+
+  .register-option .btn {
+    margin-top: auto;
+    width: 100%;
+  }
+
+  .register-option.seller {
+    border-color: rgba(69, 123, 157, .55);
+    background: linear-gradient(180deg, #1a2027 0%, #16212f 100%);
+  }
+
+  .register-footer {
+    margin-top: 16px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: .88rem;
+  }
+
+  @media (max-width: 760px) {
+    .register-grid { grid-template-columns: 1fr; }
+    .register-hero { padding: 26px 18px; }
+    .register-hero h1 { font-size: 1.55rem; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="register-page">
+  <section class="register-hero">
+    <h1>Create Your Zenin Account</h1>
+    <p>Pick the account type that fits you best.</p>
+  </section>
+
+  <section class="register-grid">
+    <article class="register-option">
+      <h2>Normal User</h2>
+      <p>Read digital chapters, buy products, and track your orders in one place.</p>
+      <div class="register-meta">Best for readers and shoppers</div>
+      <a href="{% url 'register_customer' %}" class="btn btn-primary">Login as User</a>
+    </article>
+
+    <article class="register-option seller">
+      <h2>Seller</h2>
+      <p>List products, manage inventory, and handle customer orders from your dashboard.</p>
+      <div class="register-meta">Admin approval required before first login</div>
+      <a href="{% url 'register_seller' %}" class="btn btn-outline">Login as Seller</a>
+    </article>
+  </section>
+
+  <div class="register-footer">
+    Already have an account? <a href="{% url 'login' %}">Login</a>
+  </div>
+</div>
+{% endblock %}

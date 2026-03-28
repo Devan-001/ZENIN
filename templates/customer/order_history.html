@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}My Orders – Zenin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>My Orders</h1>
+</div>
+
+{% if orders %}
+  {% for order in orders %}
+  <div class="order-card">
+    <div class="order-card-header">
+      <span class="order-id">Order #{{ order.pk }}</span>
+      <span class="order-status status-{{ order.status|lower }}">{{ order.status }}</span>
+      <span class="order-date">{{ order.get_payment_method_display }}</span>
+      <span class="order-date">{{ order.placed_at|date:"M d, Y" }}</span>
+    </div>
+    <div class="order-items-list">
+      {% for item in order.items.all %}
+      <div class="order-item-row">
+        <span>{{ item.product.title }} × {{ item.quantity }}</span>
+        <span class="order-item-actions">
+          <a href="{% url 'product_detail' item.product.pk %}" class="btn btn-sm btn-outline">View Preview</a>
+          <a href="{% url 'product_detail' item.product.pk %}#review-form" class="btn btn-sm btn-outline">Rate Book</a>
+        </span>
+        <span>₹{{ item.subtotal }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="order-card-footer">
+      <strong>Total: ₹{{ order.total }}</strong>
+      <a href="{% url 'order_bill' order.pk %}" class="btn btn-sm btn-outline">View Bill</a>
+      <a href="{% url 'order_bill_pdf' order.pk %}" class="btn btn-sm btn-outline">Download PDF</a>
+      {% if order.shipping_address %}
+        <p class="shipping-addr">📦 {{ order.shipping_address }}</p>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="empty-state">
+    <p>You haven't placed any orders yet.</p>
+    <a href="{% url 'product_catalog' %}" class="btn btn-primary">Start Shopping</a>
+  </div>
+{% endif %}
+{% endblock %}

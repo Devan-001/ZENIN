@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Delete Chapter – Admin{% endblock %}
+
+{% block content %}
+<div class="confirm-card">
+  <h2>Delete Chapter {{ chapter.number }}</h2>
+  <p>Delete Chapter {{ chapter.number }} of <strong>{{ book.title }}</strong> and all its pages?</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+    <a href="{% url 'chapter_list' book.pk %}" class="btn btn-outline">Cancel</a>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Zenin – Manga, Manhwa & Comics{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800;900&family=Teko:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20260324r6" />
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% if user.is_authenticated and user.is_staff or user.is_superuser %}admin-mode{% elif user.is_authenticated and user.is_customer %}customer-mode{% endif %}{% endblock %}">
+
+{% if user.is_authenticated and user.is_staff or user.is_superuser %}
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <a class="admin-brand" href="{% url 'home' %}">MangaVault</a>
+    <p class="admin-meta">ADMIN CONSOLE</p>
+
+    <nav class="admin-nav">
+      <a href="{% url 'home' %}">Overview</a>
+      <a href="{% url 'admin_reporting_dashboard' %}">Analytics</a>
+      <a href="{% url 'monthly_report' %}">Sales Report</a>
+      <a href="{% url 'admin_seller_requests' %}">Seller Requests</a>
+      <a href="{% url 'admin_manage_sellers' %}">Manage Sellers</a>
+      <a href="{% url 'admin_manage_customers' %}">Manage Customers</a>
+      <a href="{% url 'admin_customer_feedbacks' %}">Feedback {% if admin_pending_feedback_count %}<span class="admin-nav-badge">{{ admin_pending_feedback_count }}</span>{% endif %}</a>
+      <a href="{% url 'admin_digital_books' %}">Digital Library</a>
+    </nav>
+
+    <div class="admin-sidebar-footer">
+      <a href="{% url 'logout' %}" class="btn-logout">Logout ({{ user.username }})</a>
+    </div>
+  </aside>
+
+  <div class="admin-stage">
+    <header class="admin-topbar">
+      <div class="admin-topbar-badge">Analytics Workspace</div>
+      <div class="admin-topbar-user-wrap">
+        <div class="admin-topbar-user">{{ user.username }}</div>
+        <a href="{% url 'logout' %}" class="btn-logout admin-topbar-logout">Logout</a>
+      </div>
+    </header>
+{% else %}
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+  <a class="brand" href="{% url 'home' %}">ZENIN</a>
+  <button type="button" class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="mainNavLinks">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+  <div class="nav-links" id="mainNavLinks" data-open="false">
+    {% if not user.is_authenticated or user.is_customer %}
+      <a href="{% url 'product_catalog' %}">Shop</a>
+      <a href="{% url 'digital_catalog' %}">Read</a>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+      {% if user.is_superuser or user.is_staff %}
+        <span class="badge badge-admin">Admin</span>
+        <a href="{% url 'admin_seller_requests' %}">Sellers</a>
+        <a href="{% url 'admin_digital_books' %}">Manage Comics</a>
+        <a href="{% url 'admin_customer_feedbacks' %}">Feedback</a>
+        <a href="{% url 'admin_reporting_dashboard' %}">Reports</a>
+      {% elif user.is_seller %}
+        <span class="badge badge-seller">Seller</span>
+        <a href="{% url 'seller_dashboard' %}">Dashboard</a>
+        <a href="{% url 'seller_products' %}">My Products</a>
+        <a href="{% url 'seller_orders' %}">Orders</a>
+      {% elif user.is_customer %}
+        <span class="badge badge-customer">Customer</span>
+        <a href="{% url 'cart' %}">
+          🛒 Cart
+          {% if cart_count %}<span class="cart-badge">{{ cart_count }}</span>{% endif %}
+        </a>
+        <a href="{% url 'order_history' %}">My Orders</a>
+        <a href="{% url 'customer_feedback' %}">Support</a>
+      {% endif %}
+      <a href="{% url 'logout' %}" class="btn-logout">Logout ({{ user.username }})</a>
+    {% else %}
+      <a href="{% url 'login' %}" class="btn-nav">Login</a>
+      <a href="{% url 'register' %}" class="btn-nav btn-primary">Register</a>
+    {% endif %}
+  </div>
+</nav>
+
+{% endif %}
+
+{% if messages %}
+<div class="messages-container {% if user.is_authenticated and user.is_staff or user.is_superuser %}admin-messages{% endif %}">
+  {% for msg in messages %}
+    <div class="alert alert-{{ msg.tags }}">{{ msg }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<main class="{% if user.is_authenticated and user.is_staff or user.is_superuser %}admin-content{% else %}main-content{% endif %}">
+  {% block content %}{% endblock %}
+</main>
+
+{% if user.is_authenticated and user.is_staff or user.is_superuser %}
+  </div>
+</div>
+{% else %}
+<footer class="footer">
+  <p>© 2026 Zenin · Manga, Manhwa & Comics Platform</p>
+</footer>
+{% endif %}
+
+<script src="{% static 'js/validation.js' %}"></script>
+<script>
+  (function () {
+    const toggleButton = document.getElementById('navToggle');
+    const links = document.getElementById('mainNavLinks');
+    if (!toggleButton || !links) return;
+
+    function closeMenu() {
+      links.dataset.open = 'false';
+      toggleButton.setAttribute('aria-expanded', 'false');
+    }
+
+    toggleButton.addEventListener('click', function () {
+      const nextState = links.dataset.open === 'true' ? 'false' : 'true';
+      links.dataset.open = nextState;
+      toggleButton.setAttribute('aria-expanded', nextState);
+    });
+
+    window.addEventListener('resize', function () {
+      if (window.innerWidth > 900) {
+        closeMenu();
+      }
+    });
+  })();
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

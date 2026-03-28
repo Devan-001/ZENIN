@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Orders – Zenin Seller{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Orders for My Products</h1>
+</div>
+
+{% if order_items %}
+<div class="table-wrapper">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Order #</th><th>Customer</th><th>Product</th>
+        <th>Qty</th><th>Amount</th><th>Payment</th><th>Status</th><th>Update</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in order_items %}
+      <tr>
+        <td>#{{ item.order.pk }}</td>
+        <td>{{ item.order.customer.user.username }}</td>
+        <td>{{ item.product.title }}</td>
+        <td>{{ item.quantity }}</td>
+        <td>₹{{ item.subtotal }}</td>
+        <td>{{ item.order.get_payment_method_display }}</td>
+        <td><span class="status-{{ item.order.status|lower }}">{{ item.order.status }}</span></td>
+        <td>
+          <form method="post" action="{% url 'seller_order_update' item.order.pk %}">
+            {% csrf_token %}
+            <select name="status" class="select-input select-sm">
+              {% for val, label in item.order.STATUS_CHOICES %}
+                <option value="{{ val }}" {% if item.order.status == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-sm btn-primary">Update</button>
+          </form>
+          <a href="{% url 'seller_order_bill_pdf' item.order.pk %}" class="btn btn-sm btn-outline" style="margin-top:8px; display:inline-block;">Invoice PDF</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <div class="empty-state"><p>No orders yet for your products.</p></div>
+{% endif %}
+{% endblock %}

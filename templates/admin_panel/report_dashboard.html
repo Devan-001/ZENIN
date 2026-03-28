@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+{% block title %}Admin Reporting Dashboard – MangaVault{% endblock %}
+
+{% block extra_head %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  .report-wrap .card { border-radius: 14px; }
+  .report-wrap .table { margin-bottom: 0; }
+  .report-wrap .section-title { margin-top: 28px; margin-bottom: 14px; font-weight: 700; }
+  .report-wrap .summary-card h2 { font-size: 1.6rem; margin: 0; }
+  .report-wrap .summary-card p { margin: 0; color: #adb5bd; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="report-wrap container-fluid px-0">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <h1 class="mb-0">MangaVault Admin Reporting Dashboard</h1>
+    <a href="{% url 'monthly_report' %}" class="btn btn-outline-light btn-sm">Legacy Monthly Report</a>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card summary-card bg-dark text-light p-3">
+        <p>Total Revenue</p>
+        <h2>Rs. {{ total_revenue|floatformat:2 }}</h2>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card summary-card bg-dark text-light p-3">
+        <p>Total Orders</p>
+        <h2>{{ total_orders }}</h2>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card summary-card bg-dark text-light p-3">
+        <p>Total Users</p>
+        <h2>{{ total_users }}</h2>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card summary-card bg-dark text-light p-3">
+        <p>Digital Titles</p>
+        <h2>{{ total_books }}</h2>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-title">1. Sales and Revenue Reports</h2>
+  <div class="row g-3">
+    <div class="col-lg-7">
+      <div class="card bg-dark text-light">
+        <div class="card-header">Monthly Sales Summary</div>
+        <div class="table-responsive">
+          <table class="table table-dark table-striped align-middle">
+            <thead><tr><th>Month</th><th>Orders</th><th>Revenue</th><th>10% Commission</th></tr></thead>
+            <tbody>
+              {% for row in monthly_sales %}
+              <tr>
+                <td>{{ row.month|date:"M Y" }}</td>
+                <td>{{ row.total_orders }}</td>
+                <td>Rs. {{ row.total_revenue|floatformat:2 }}</td>
+                <td>Rs. {{ row.commission_fee|floatformat:2 }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4">No monthly sales data.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="card bg-dark text-light mb-3">
+        <div class="card-header">Order Status Report</div>
+        <div class="table-responsive">
+          <table class="table table-dark table-striped align-middle">
+            <thead><tr><th>Status</th><th>Total</th></tr></thead>
+            <tbody>
+              {% for row in order_status_report %}
+              <tr><td>{{ row.status_label }}</td><td>{{ row.total }}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card bg-dark text-light">
+        <div class="card-header">Top 5 Selling Products</div>
+        <div class="table-responsive">
+          <table class="table table-dark table-striped align-middle">
+            <thead><tr><th>Title</th><th>Category</th><th>Qty</th></tr></thead>
+            <tbody>
+              {% for row in top_products %}
+              <tr>
+                <td>{{ row.product__title }}</td>
+                <td>{{ row.product__category }}</td>
+                <td>{{ row.total_quantity }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3">No product sales found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card bg-dark text-light mt-3">
+    <div class="card-header">Seller Revenue Breakdown</div>
+    <div class="table-responsive">
+      <table class="table table-dark table-striped align-middle">
+        <thead><tr><th>Seller</th><th>Email</th><th>Units Sold</th><th>Orders</th><th>Earnings</th></tr></thead>
+        <tbody>
+          {% for seller in seller_revenue %}
+          <tr>
+            <td>{{ seller.shop_name }}</td>
+            <td>{{ seller.user.email }}</td>
+            <td>{{ seller.total_units|default:0 }}</td>
+            <td>{{ seller.total_orders|default:0 }}</td>
+            <td>Rs. {{ seller.total_earnings|default:0|floatformat:2 }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5">No seller earnings data.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <h2 class="section-title">2. User and Content Analytics</h2>
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <div class="card bg-dark text-light">
+        <div class="card-header">Most Read Titles</div>
+        <div class="table-responsive">
+          <table class="table table-dark table-striped align-middle">
+            <thead><tr><th>Title</th><th>Category</th><th>Reads</th></tr></thead>
+            <tbody>
+              {% for row in most_read_titles %}
+              <tr>
+                <td>{{ row.digital_book__title }}</td>
+                <td>{{ row.digital_book__category }}</td>
+                <td>{{ row.read_count }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3">No reading data yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card bg-dark text-light">
+        <div class="card-header">New User Registrations (Weekly)</div>
+        <div class="table-responsive">
+          <table class="table table-dark table-striped align-middle">
+            <thead><tr><th>Week</th><th>Customers</th><th>Sellers</th><th>Total</th></tr></thead>
+            <tbody>
+              {% for row in weekly_registrations %}
+              <tr>
+                <td>{{ row.week|date:"d M Y" }}</td>
+                <td>{{ row.customer_count }}</td>
+                <td>{{ row.seller_count }}</td>
+                <td>{{ row.total_count }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4">No registration data.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mt-1">
+    <div class="col-lg-6">
+      <div class="card bg-dark text-light">
+        <div class="card-header">Chapter Upload History</div>
+        <div class="table-responsive">
+          <table class="table table-dark table-striped align-middle">
+            <thead><tr><th>Book</th><th>Chapter</th><th>Uploaded</th></tr></thead>
+            <tbody>
+              {% for chapter in chapter_upload_history %}
+              <tr>
+                <td>{{ chapter.digital_book.title }}</td>
+                <td>{{ chapter.number }}</td>
+                <td>{{ chapter.upload_date|date:"d M Y, h:i A" }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3">No chapter uploads yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card bg-dark text-light">
+        <div class="card-header">Genre Popularity (Purchases + Reads)</div>
+        <div class="table-responsive">
+          <table class="table table-dark table-striped align-middle">
+            <thead><tr><th>Genre</th><th>Purchases</th><th>Reads</th><th>Total</th></tr></thead>
+            <tbody>
+              {% for row in genre_popularity %}
+              <tr>
+                <td>{{ row.genre_label }}</td>
+                <td>{{ row.purchase_count }}</td>
+                <td>{{ row.read_count }}</td>
+                <td>{{ row.combined_total }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4">No popularity data yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-title">3. Operational and Management Reports</h2>
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <div class="card bg-dark text-light">
+        <div class="card-header">Pending Seller Approvals</div>
+        <div class="table-responsive">
+          <table class="table table-dark table-striped align-middle">
+            <thead><tr><th>Username</th><th>Email</th><th>Shop</th><th>Requested</th></tr></thead>
+            <tbody>
+              {% for seller in pending_seller_approvals %}
+              <tr>
+                <td>{{ seller.user.username }}</td>
+                <td>{{ seller.user.email }}</td>
+                <td>{{ seller.shop_name }}</td>
+                <td>{{ seller.created_at|date:"d M Y" }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4">No pending approvals.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card bg-dark text-light">
+        <div class="card-header">Low Stock Alerts (Stock < 5)</div>
+        <div class="table-responsive">
+          <table class="table table-dark table-striped align-middle">
+            <thead><tr><th>Product</th><th>Seller</th><th>Stock</th></tr></thead>
+            <tbody>
+              {% for product in low_stock_alerts %}
+              <tr>
+                <td>{{ product.title }}</td>
+                <td>{{ product.seller.shop_name }}</td>
+                <td>{{ product.stock }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3">No low stock products.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card bg-dark text-light mt-3 mb-2">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>User Feedback Log (Latest 10)</span>
+      {% if feedback_average %}
+      <span class="badge bg-light text-dark">Avg Rating: {{ feedback_average|floatformat:1 }}/5</span>
+      {% endif %}
+    </div>
+    <div class="table-responsive">
+      <table class="table table-dark table-striped align-middle">
+        <thead><tr><th>User</th><th>Product</th><th>Rating</th><th>Comment</th><th>Date</th></tr></thead>
+        <tbody>
+          {% if feedback_available %}
+            {% for feedback in feedback_log %}
+            <tr>
+              <td>{{ feedback.customer.user.username }}</td>
+              <td>{{ feedback.product.title }}</td>
+              <td>{{ feedback.rating }}</td>
+              <td>{{ feedback.comment|default:"-"|truncatechars:80 }}</td>
+              <td>{{ feedback.created_at|date:"d M Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No feedback entries available.</td></tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="5">Feedback model not available yet. Add a ProductReview model to enable this report.</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

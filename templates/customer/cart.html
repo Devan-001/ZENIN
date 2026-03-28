@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}My Cart – Zenin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Shopping Cart</h1>
+  <p>Review items, adjust quantity, and continue to secure checkout.</p>
+</div>
+
+{% if items %}
+<div class="cart-layout">
+  <div class="cart-items card cart-items-card">
+    <div class="cart-items-head">
+      <h2>Your Items ({{ cart_count }})</h2>
+      <a href="{% url 'product_catalog' %}" class="btn btn-sm btn-outline">Continue Shopping</a>
+    </div>
+    {% for item in items %}
+    <div class="cart-row">
+      {% if item.product.cover_image %}
+        <img src="{{ item.product.cover_image.url }}" alt="{{ item.product.title }}" class="cart-thumb" />
+      {% else %}
+        <div class="cart-thumb-placeholder">📚</div>
+      {% endif %}
+      <div class="cart-row-info">
+        <h3>{{ item.product.title }}</h3>
+        <p class="cart-seller">{{ item.product.seller.shop_name }}</p>
+        <p class="stock-tag">₹{{ item.product.price }} each</p>
+      </div>
+      <div class="qty-form">
+        <form method="post" action="{% url 'update_cart' item.product.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="quantity" value="{{ item.quantity|add:'-1' }}" />
+          <button type="submit" class="btn btn-sm btn-outline">-</button>
+        </form>
+        <form method="post" action="{% url 'update_cart' item.product.pk %}" class="qty-inline-form">
+          {% csrf_token %}
+          <input type="number" name="quantity" value="{{ item.quantity }}" min="1"
+                 max="{{ item.product.stock }}" class="qty-input" />
+          <button type="submit" class="btn btn-sm btn-outline">Update</button>
+        </form>
+        <form method="post" action="{% url 'update_cart' item.product.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="quantity" value="{{ item.quantity|add:'1' }}" />
+          <button type="submit" class="btn btn-sm btn-outline">+</button>
+        </form>
+      </div>
+      <div class="cart-item-total">₹{{ item.subtotal }}</div>
+      <a href="{% url 'remove_from_cart' item.product.pk %}" class="btn btn-sm btn-danger cart-remove-btn"
+         onclick="return confirm('Remove this item?')">Remove</a>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="cart-summary">
+    <h3>Order Summary</h3>
+    <div class="summary-row">
+      <span>Items Total</span><span>₹{{ total }}</span>
+    </div>
+    <div class="summary-row summary-total">
+      <span>Total</span><span>₹{{ total }}</span>
+    </div>
+    <p class="cart-summary-note">Taxes and delivery fee are calculated at checkout.</p>
+    <a href="{% url 'checkout' %}" class="btn btn-primary btn-full">Proceed to Checkout</a>
+    <a href="{% url 'product_catalog' %}" class="btn btn-outline btn-full" style="margin-top:8px;">Continue Shopping</a>
+  </div>
+</div>
+{% else %}
+  <div class="empty-state">
+    <p>Your cart is empty.</p>
+    <a href="{% url 'product_catalog' %}" class="btn btn-primary">Browse Shop</a>
+  </div>
+{% endif %}
+{% endblock %}

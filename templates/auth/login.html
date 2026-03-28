@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}Login – Zenin{% endblock %}
+{% block body_class %}login-page{% endblock %}
+
+{% block content %}
+<div class="auth-container auth-container-login ig-login-shell">
+  <div class="ig-login-showcase">
+    <div class="ig-cover-frame">
+      {% if showcase_cover_url %}
+        <img src="{{ showcase_cover_url }}" alt="{{ showcase_title|default:'Featured book cover' }}" class="ig-cover-image" />
+        <div class="ig-cover-caption">
+          <p class="ig-cover-caption-label">Featured Cover</p>
+          <p class="ig-cover-caption-title">{{ showcase_title|default:'Zenin Library' }}</p>
+        </div>
+      {% else %}
+        <div class="ig-cover-fallback">
+          <p class="ig-cover-caption-label">Featured Cover</p>
+          <p class="ig-cover-caption-title">Zenin Library</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="auth-card auth-card-wide auth-card-login ig-login-panel">
+    <h1 class="ig-login-wordmark">ZENIN</h1>
+    <p class="auth-sub">Sign in to continue reading and shopping</p>
+
+    <form method="post" id="loginForm" class="ig-login-form">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required autocomplete="username"
+               placeholder="Phone number, username, or email" />
+        <span class="field-error" id="usernameError"></span>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="password-field-wrap">
+          <input type="password" id="password" name="password" required autocomplete="current-password"
+                 placeholder="Enter your password" />
+          <button type="button" class="password-toggle-btn" id="togglePassword" aria-label="Show password" aria-pressed="false" title="Show password">
+            <svg class="password-eye-icon eye-open" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M1.5 12s3.6-6 10.5-6 10.5 6 10.5 6-3.6 6-10.5 6S1.5 12 1.5 12Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+              <circle cx="12" cy="12" r="3.1" fill="none" stroke="currentColor" stroke-width="1.8"></circle>
+            </svg>
+            <svg class="password-eye-icon eye-closed" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M2.5 2.5 21.5 21.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+              <path d="M4.4 7.3C2.8 9.1 1.9 10.8 1.5 12c0 0 3.6 6 10.5 6 2.1 0 3.9-.5 5.4-1.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+              <path d="M9.2 5.8A11.5 11.5 0 0 1 12 6c6.9 0 10.5 6 10.5 6a17.6 17.6 0 0 1-3.3 4.1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </button>
+        </div>
+        <span class="field-error" id="passwordError"></span>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full ig-login-submit">Log in</button>
+    </form>
+
+    <div class="ig-divider" aria-hidden="true">
+      <span></span><p>OR</p><span></span>
+    </div>
+
+    <div class="ig-support-links">
+      <a href="{% url 'register_customer' %}">Create normal user account</a>
+      <a href="{% url 'register_seller' %}">Create seller account</a>
+    </div>
+
+    <div class="auth-links ig-signup-row">
+      <p>New to Zenin? <a href="{% url 'register_customer' %}">Sign up</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const loginForm = document.getElementById('loginForm');
+  const passwordField = document.getElementById('password');
+  const togglePasswordBtn = document.getElementById('togglePassword');
+
+  togglePasswordBtn.addEventListener('click', function() {
+    const isPassword = passwordField.type === 'password';
+    passwordField.type = isPassword ? 'text' : 'password';
+    togglePasswordBtn.classList.toggle('is-visible', isPassword);
+    togglePasswordBtn.setAttribute('aria-pressed', isPassword ? 'true' : 'false');
+    togglePasswordBtn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+    togglePasswordBtn.setAttribute('title', isPassword ? 'Hide password' : 'Show password');
+  });
+
+  loginForm.addEventListener('submit', function(e) {
+    let valid = true;
+    const username = document.getElementById('username').value.trim();
+    const password = passwordField.value;
+
+    document.getElementById('usernameError').textContent = '';
+    document.getElementById('passwordError').textContent = '';
+
+    if (!username) {
+      document.getElementById('usernameError').textContent = 'Username is required.';
+      valid = false;
+    }
+    if (!password) {
+      document.getElementById('passwordError').textContent = 'Password is required.';
+      valid = false;
+    }
+    if (!valid) e.preventDefault();
+  });
+</script>
+{% endblock %}

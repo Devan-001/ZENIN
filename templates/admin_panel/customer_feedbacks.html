@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Customer Feedback - Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Customer Feedback & Complaints</h1>
+  <p>Review customer messages and reply to them.</p>
+</div>
+
+{% if feedback_entries %}
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>Type</th>
+          <th>Subject</th>
+          <th>Message</th>
+          <th>Status</th>
+          <th>Admin Reply</th>
+          <th>Created</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in feedback_entries %}
+        <tr>
+          <td>{{ entry.customer.user.username }}</td>
+          <td>{{ entry.get_feedback_type_display }}</td>
+          <td>{{ entry.subject }}</td>
+          <td>{{ entry.message|truncatechars:120 }}</td>
+          <td>{{ entry.get_status_display }}</td>
+          <td>{{ entry.admin_note|default:"-"|truncatechars:80 }}</td>
+          <td>{{ entry.created_at|date:"M d, Y H:i" }}</td>
+          <td><a href="{% url 'admin_feedback_reply' entry.pk %}" class="btn btn-sm btn-primary">View & Reply</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="empty-state">
+    <p>No feedback or complaints submitted yet.</p>
+  </div>
+{% endif %}
+{% endblock %}

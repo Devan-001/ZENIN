@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard – Zenin{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+  <h1>Admin Dashboard</h1>
+  <p>High-level platform health, pending actions, and latest operations.</p>
+</div>
+
+<div class="stat-grid admin-stat-grid">
+  <div class="stat-card">
+    <div class="stat-number">₹{{ total_revenue|floatformat:2 }}</div>
+    <div class="stat-label">Total Revenue</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">{{ total_customers }}</div>
+    <div class="stat-label">Total Customers</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">{{ active_sellers }}</div>
+    <div class="stat-label">Active Sellers</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">{{ total_digital_chapters }}</div>
+    <div class="stat-label">Total Digital Chapters</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">{{ total_orders }}</div>
+    <div class="stat-label">Total Orders</div>
+  </div>
+</div>
+
+<section class="pending-actions-banner">
+  <h2>Pending Actions</h2>
+  {% if pending_actions_count %}
+    <p><strong>{{ pending_actions_count }}</strong> seller account(s) are waiting for approval.</p>
+    <a href="{% url 'admin_seller_requests' %}" class="btn btn-sm btn-primary">Review Requests</a>
+  {% else %}
+    <p>No urgent approvals right now. All seller requests are processed.</p>
+  {% endif %}
+</section>
+
+<div class="page-header admin-activity-header">
+  <h2>Recent Activity</h2>
+  <div class="quick-actions">
+    <a href="{% url 'admin_seller_requests' %}" class="btn btn-outline">Seller Approvals</a>
+    <a href="{% url 'admin_manage_sellers' %}" class="btn btn-outline">Manage Sellers</a>
+    <a href="{% url 'admin_manage_customers' %}" class="btn btn-outline">Manage Customers</a>
+    <a href="{% url 'admin_digital_books' %}" class="btn btn-outline">Manage Comics</a>
+    <a href="{% url 'admin_reporting_dashboard' %}" class="btn btn-primary">Analytics Reports</a>
+  </div>
+</div>
+
+{% if recent_activity %}
+<div class="table-wrapper">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Item</th>
+        <th>Detail</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for activity in recent_activity %}
+      <tr>
+        <td>{{ activity.kind }}</td>
+        <td>{{ activity.title }}</td>
+        <td>{{ activity.detail }}</td>
+        <td>{{ activity.timestamp|date:"M d, Y H:i" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state"><p>No recent activity yet.</p></div>
+{% endif %}
+{% endblock %}

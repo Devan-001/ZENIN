@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Seller Requests – Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Seller Approval Requests</h1>
+</div>
+
+<h2 class="sub-section-title">Pending Requests</h2>
+{% if pending %}
+<div class="table-wrapper">
+  <table class="data-table">
+    <thead>
+      <tr><th>Username</th><th>Email</th><th>Shop Name</th><th>License</th><th>Registered</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for seller in pending %}
+      <tr>
+        <td>{{ seller.user.username }}</td>
+        <td>{{ seller.user.email }}</td>
+        <td>{{ seller.shop_name }}</td>
+        <td>
+          {% if seller.seller_license %}
+            <a href="{{ seller.seller_license.url }}" target="_blank" rel="noopener">View License</a>
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>{{ seller.created_at|date:"M d, Y" }}</td>
+        <td class="action-cell">
+          <form method="post" action="{% url 'approve_seller' seller.pk %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-primary">Approve</button>
+          </form>
+          <form method="post" action="{% url 'reject_seller' seller.pk %}" style="display:inline;"
+                onsubmit="return confirm('Reject and permanently delete this seller account?');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <p class="empty-msg">No pending requests.</p>
+{% endif %}
+
+<h2 class="sub-section-title" style="margin-top:40px;">Approved Sellers</h2>
+{% if approved %}
+<div class="table-wrapper">
+  <table class="data-table">
+    <thead>
+      <tr><th>Username</th><th>Email</th><th>Shop Name</th><th>License</th><th>Approved Since</th></tr>
+    </thead>
+    <tbody>
+      {% for seller in approved %}
+      <tr>
+        <td>{{ seller.user.username }}</td>
+        <td>{{ seller.user.email }}</td>
+        <td>{{ seller.shop_name }}</td>
+        <td>
+          {% if seller.seller_license %}
+            <a href="{{ seller.seller_license.url }}" target="_blank" rel="noopener">View License</a>
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>{{ seller.created_at|date:"M d, Y" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <p class="empty-msg">No approved sellers yet.</p>
+{% endif %}
+{% endblock %}

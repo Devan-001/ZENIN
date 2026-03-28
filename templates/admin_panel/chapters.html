@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Chapters – {{ book.title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>{{ book.title }} – Chapters</h1>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a href="{% url 'chapter_create' book.pk %}" class="btn btn-primary">+ Upload Chapter</a>
+    <a href="{% url 'chapter_bulk_upload' book.pk %}" class="btn btn-outline">+ Bulk Upload (Max 100)</a>
+  </div>
+</div>
+
+{% if chapters %}
+<div class="table-wrapper">
+  <table class="data-table">
+    <thead>
+      <tr><th>#</th><th>Title</th><th>Source</th><th>Pages</th><th>Uploaded</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for chapter in chapters %}
+      <tr>
+        <td>{{ chapter.number }}</td>
+        <td>{{ chapter.title|default:"—" }}</td>
+        <td>
+          {% if chapter.chapter_file %}
+            {{ chapter.file_extension|upper }}
+          {% else %}
+            Images
+          {% endif %}
+        </td>
+        <td>{{ chapter.pages.count }}</td>
+        <td>{{ chapter.upload_date|date:"M d, Y" }}</td>
+        <td class="action-cell">
+          <a href="{% url 'read_chapter' book.pk chapter.number %}" class="btn btn-sm btn-outline">Preview</a>
+          <a href="{% url 'chapter_delete' book.pk chapter.number %}" class="btn btn-sm btn-danger">Delete</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <div class="empty-state"><p>No chapters uploaded yet.</p></div>
+{% endif %}
+
+<a href="{% url 'admin_digital_books' %}" class="btn btn-outline">← Back to Books</a>
+{% endblock %}

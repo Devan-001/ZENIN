@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Delete Book – Admin{% endblock %}
+
+{% block content %}
+<div class="confirm-card">
+  <h2>Delete Digital Book</h2>
+  <p>Delete <strong>{{ book.title }}</strong> and all its chapters? This cannot be undone.</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+    <a href="{% url 'admin_digital_books' %}" class="btn btn-outline">Cancel</a>
+  </form>
+</div>
+{% endblock %}

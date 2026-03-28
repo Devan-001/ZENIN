@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Monthly Sales Report – Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Monthly Sales Reports</h1>
+</div>
+
+{% if report_rows %}
+<div class="table-wrapper">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Month</th>
+        <th>Total Orders</th>
+        <th>Total Revenue</th>
+        <th>Active Sellers</th>
+        <th>Download</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in report_rows %}
+      <tr>
+        <td>{{ row.month|date:"F Y" }}</td>
+        <td>{{ row.total_orders }}</td>
+        <td>₹{{ row.total_revenue }}</td>
+        <td>{{ row.active_sellers }}</td>
+        <td>
+          <a href="{% url 'download_monthly_sales' row.year row.month_number %}" class="btn btn-sm btn-outline">
+            Download CSV
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <div class="empty-state"><p>No sales data available yet.</p></div>
+{% endif %}
+{% endblock %}

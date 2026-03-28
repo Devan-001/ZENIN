@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Register – Zenin{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+  <div class="auth-card auth-card-wide">
+    <h2>Create Account</h2>
+    <p class="auth-sub">Register as a customer</p>
+
+    <form method="post" id="customerRegForm" novalidate>
+      {% csrf_token %}
+
+      {% for field in form %}
+      <div class="form-group">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<small class="help-text">{{ field.help_text }}</small>{% endif %}
+        {% for err in field.errors %}<span class="field-error">{{ err }}</span>{% endfor %}
+      </div>
+      {% endfor %}
+
+      <div class="form-group" id="customerStrengthGroup" style="display:none;">
+        <label>Password Strength</label>
+        <div class="strength-bar-container">
+          <div class="strength-bar" id="customerStrengthBar"></div>
+        </div>
+        <small id="customerStrengthLabel"></small>
+      </div>
+
+      {% for err in form.non_field_errors %}<span class="field-error">{{ err }}</span>{% endfor %}
+
+      <button type="submit" class="btn btn-primary btn-full">Register</button>
+    </form>
+
+    <div class="auth-links">
+      <p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
+      <p>Need another option? <a href="{% url 'register' %}">Choose Account Type</a></p>
+      <p>Want to sell? <a href="{% url 'register_seller' %}">Apply as Seller</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  initRegisterValidation('customerRegForm', {
+    passwordField: 'id_password1',
+    confirmField: 'id_password2',
+    emailField: 'id_email',
+    phoneField: 'id_phone_number',
+    strengthBar: 'customerStrengthBar',
+    strengthLabel: 'customerStrengthLabel',
+    strengthGroup: 'customerStrengthGroup'
+  });
+</script>
+{% endblock %}

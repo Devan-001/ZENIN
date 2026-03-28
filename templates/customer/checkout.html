@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout – Zenin{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/checkout.css' %}?v=20260314r">
+{% endblock %}
+
+{% block content %}
+<div class="checkout-page-header">
+  <h1>Checkout</h1>
+  <p>Choose a payment method and place your order securely.</p>
+</div>
+
+<form id="checkoutForm" method="POST" action="">
+  {% csrf_token %}
+
+  <div class="checkout-layout payment-checkout-layout">
+    <section class="payment-panel">
+      <h2>Delivery Address</h2>
+      <div class="shipping-wrap">
+        <label for="{{ form.shipping_address.id_for_label }}">Shipping Address</label>
+        {{ form.shipping_address }}
+        {% for err in form.shipping_address.errors %}
+          <span class="field-error">{{ err }}</span>
+        {% endfor %}
+      </div>
+
+      <h2 class="payment-heading">Select a payment method</h2>
+
+      <label class="method-row active" for="pay_card">
+        <input type="radio" id="pay_card" name="payment_method" value="card" checked>
+        <span class="method-title">Credit or Debit Card</span>
+      </label>
+
+      <div id="cardFields" class="method-fields">
+        <div class="field-grid">
+          <div class="field full">
+            <label for="card_name">Name on Card</label>
+            <input type="text" id="card_name" name="card_name" placeholder="John Doe" autocomplete="cc-name">
+          </div>
+
+          <div class="field full">
+            <label for="card_number">Card Number</label>
+            <input type="text" id="card_number" name="card_number" placeholder="1234 5678 9012 3456" inputmode="numeric" maxlength="19" autocomplete="cc-number">
+          </div>
+
+          <div class="field">
+            <label for="card_expiry">MM/YY</label>
+            <input type="text" id="card_expiry" name="card_expiry" placeholder="08/29" maxlength="5" autocomplete="cc-exp">
+          </div>
+
+          <div class="field">
+            <label for="card_cvv">CVV</label>
+            <input type="password" id="card_cvv" name="card_cvv" placeholder="123" inputmode="numeric" maxlength="4" autocomplete="cc-csc">
+          </div>
+        </div>
+      </div>
+
+      <label class="method-row" for="pay_upi">
+        <input type="radio" id="pay_upi" name="payment_method" value="upi">
+        <span class="method-title">UPI</span>
+      </label>
+
+      <div id="upiFields" class="method-fields hidden">
+        <div class="field-inline">
+          <div class="field grow">
+            <label for="upi_id">UPI ID</label>
+            <input type="text" id="upi_id" name="upi_id" placeholder="name@bank">
+          </div>
+          <button type="button" id="verifyUpiBtn" class="verify-btn">Verify</button>
+        </div>
+        <p id="upiStatus" class="upi-status" aria-live="polite"></p>
+      </div>
+
+      <label class="method-row" for="pay_cod">
+        <input type="radio" id="pay_cod" name="payment_method" value="cod">
+        <span class="method-title">Cash on Delivery (COD)</span>
+      </label>
+    </section>
+
+    <aside class="summary-panel">
+      <div class="summary-box">
+        <h3>Order Summary</h3>
+
+        {% for item in items %}
+          <div class="summary-line item-line">
+            <span>{{ item.product.title }} × {{ item.quantity }}</span>
+            <strong>Rs. {{ item.subtotal }}</strong>
+          </div>
+        {% endfor %}
+
+        <div class="summary-line">
+          <span>Items Total</span>
+          <strong>Rs. {{ totals.item_total }}</strong>
+        </div>
+        <div class="summary-line">
+          <span>Tax (GST {{ totals.tax_rate_percent }}%)</span>
+          <strong>Rs. {{ totals.tax_amount }}</strong>
+        </div>
+        <div class="summary-line">
+          <span>Delivery Charge</span>
+          <strong>Rs. {{ totals.shipping_fee }}</strong>
+        </div>
+        <hr>
+        <div class="summary-line total">
+          <span>Order Total</span>
+          <strong>Rs. {{ totals.grand_total }}</strong>
+        </div>
+
+        <button id="placeOrderBtn" type="submit" class="place-order-btn">Place Your Order</button>
+      </div>
+    </aside>
+  </div>
+
+  <div id="processingOverlay" class="processing-overlay" aria-hidden="true">
+    <div class="processing-card">
+      <div class="spinner"></div>
+      <p>Processing your payment...</p>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/checkout.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% block title %}{{ product.title }} - Zenin{% endblock %}
+
+{% block content %}
+<div class="book-detail-hero">
+  <div class="book-detail-media-wrap">
+    {% if product.cover_image %}
+      <img src="{{ product.cover_image.url }}" alt="{{ product.title }}" class="book-cover-lg" />
+    {% else %}
+      <div class="book-cover-placeholder-lg">📚</div>
+    {% endif %}
+  </div>
+  <div class="book-detail-info-wrap">
+    <div class="book-detail-info">
+      <span class="badge badge-{{ product.category|lower }}">{{ product.get_category_display }}</span>
+      <h1>{{ product.title }}</h1>
+      <div class="rating-row" aria-label="Rated {{ product.avg_rating|default:0|floatformat:1 }} out of 5">
+        {% with rating=product.avg_rating|default:0 %}
+          <span class="rating-stars" aria-hidden="true">
+            {% if rating >= 4.5 %}★★★★★
+            {% elif rating >= 3.5 %}★★★★☆
+            {% elif rating >= 2.5 %}★★★☆☆
+            {% elif rating >= 1.5 %}★★☆☆☆
+            {% elif rating >= 0.5 %}★☆☆☆☆
+            {% else %}☆☆☆☆☆
+            {% endif %}
+          </span>
+        {% endwith %}
+        <span class="rating-text">{{ product.avg_rating|default:0|floatformat:1 }} ({{ product.review_count|default:0 }} ratings)</span>
+      </div>
+      {% if product.genres.all %}
+        <p class="card-sub">
+          Genres:
+          {% for genre in product.genres.all %}
+            <span class="badge badge-comic">{{ genre.name }}</span>
+          {% empty %}
+            <span class="stock-tag">None</span>
+          {% endfor %}
+        </p>
+      {% endif %}
+      <p>{{ product.description }}</p>
+      <p class="card-sub">Sold by {{ product.seller.shop_name }}</p>
+      <ul class="trust-points">
+        <li>Secure checkout and encrypted payments</li>
+        <li>Seller quality checks by admin</li>
+        <li>Support available after purchase</li>
+      </ul>
+
+      <div class="detail-actions">
+        <a href="{% url 'product_catalog' %}" class="btn btn-outline">Back to Shop</a>
+      </div>
+    </div>
+
+    <aside class="buy-box">
+      <p class="card-price">₹{{ product.price }}</p>
+      <p class="stock-tag {% if product.stock < 5 %}stock-low{% endif %}">
+        {% if product.stock < 5 %}Only {{ product.stock }} left in stock{% else %}{{ product.stock }} in stock{% endif %}
+      </p>
+      <p class="buy-box-note">Fast delivery in 2-5 business days.</p>
+
+      {% if user.is_authenticated and user.is_customer %}
+        <form method="post" action="{% url 'add_to_cart' product.pk %}" class="detail-buy-form">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+          <label for="detailQty">Quantity</label>
+          <input id="detailQty" type="number" min="1" max="{{ product.stock }}" value="1" name="quantity" class="shop-qty-input" />
+          <button type="submit" class="btn btn-primary btn-full">Add to Cart</button>
+        </form>
+
+        <form method="post" action="{% url 'add_to_cart' product.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="quantity" value="1" />
+          <input type="hidden" name="next" value="{% url 'cart' %}" />
+          <button type="submit" class="btn btn-outline btn-full" style="margin-top: 10px;">Buy Now</button>
+        </form>
+      {% elif not user.is_authenticated %}
+        <a href="{% url 'login' %}" class="btn btn-primary btn-full">Login to Buy</a>
+      {% endif %}
+    </aside>
+  </div>
+</div>
+
+{% if related_products %}
+<section class="section">
+  <h2 class="section-title">Similar Picks</h2>
+  <div class="card-grid">
+    {% for item in related_products %}
+      <article class="card shop-card">
+        <a href="{% url 'product_detail' item.pk %}">
+          {% if item.cover_image %}
+            <img src="{{ item.cover_image.url }}" alt="{{ item.title }}" class="card-img" />
+          {% else %}
+            <div class="card-img-placeholder">📚</div>
+          {% endif %}
+        </a>
+        <div class="card-body shop-card-body">
+          <h3 class="card-title"><a href="{% url 'product_detail' item.pk %}">{{ item.title }}</a></h3>
+          <p class="card-sub">{{ item.seller.shop_name }}</p>
+          <div class="card-footer">
+            <span class="card-price">₹{{ item.price }}</span>
+            <a href="{% url 'product_detail' item.pk %}" class="btn btn-sm btn-outline">View</a>
+          </div>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="chapter-list-section">
+  <h2>Preview Pages</h2>
+  {% if preview_pages %}
+    <p class="card-sub" style="margin-bottom: 14px;">Swipe through sample pages before you buy.</p>
+    <div class="preview-grid">
+      {% for page in preview_pages %}
+        <figure class="preview-card">
+          <img
+            src="{{ page.image.url }}"
+            alt="{{ product.title }} preview page {{ page.page_number }}"
+            class="preview-img js-preview-image"
+            loading="lazy"
+          />
+          <figcaption>Page {{ page.page_number }}</figcaption>
+        </figure>
+      {% endfor %}
+    </div>
+
+    <div class="preview-lightbox" id="previewLightbox" aria-hidden="true" role="dialog" aria-label="Preview image viewer">
+      <button type="button" class="preview-lightbox-close" id="previewLightboxClose" aria-label="Close preview">&times;</button>
+      <img src="" alt="Full screen preview" class="preview-lightbox-image" id="previewLightboxImage" />
+    </div>
+  {% else %}
+    <div class="empty-state"><p>No preview pages added by seller yet.</p></div>
+  {% endif %}
+</section>
+
+<section class="chapter-list-section" id="reviews">
+  <h2>Customer Reviews</h2>
+
+  {% if user.is_authenticated and user.is_customer %}
+    {% if has_purchased %}
+    <div class="form-card" style="margin-bottom:16px; max-width:100%;">
+      <form method="post" action="{% url 'add_product_review' product.pk %}" id="review-form">
+        {% csrf_token %}
+        {% for field in review_form %}
+        <div class="form-group">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% for err in field.errors %}<span class="field-error">{{ err }}</span>{% endfor %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary btn-sm">Submit Review</button>
+      </form>
+    </div>
+    {% else %}
+    <div class="info-box" style="margin-bottom: 16px;">
+      You can rate this book after purchasing it.
+    </div>
+    {% endif %}
+  {% elif not user.is_authenticated %}
+    <p class="empty-msg" style="margin-bottom: 12px;">Please login as a customer to rate this book.</p>
+  {% endif %}
+
+  {% if reviews %}
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr><th>User</th><th>Rating</th><th>Comment</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+          {% for review in reviews %}
+          <tr>
+            <td>{{ review.customer.user.username }}</td>
+            <td>{{ review.rating }}/5</td>
+            <td>{{ review.comment|default:"-" }}</td>
+            <td>{{ review.created_at|date:"M d, Y" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="empty-msg">No reviews yet.</p>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const lightbox = document.getElementById('previewLightbox');
+    if (!lightbox) return;
+
+    const lightboxImage = document.getElementById('previewLightboxImage');
+    const closeButton = document.getElementById('previewLightboxClose');
+    const previewImages = document.querySelectorAll('.js-preview-image');
+
+    function openLightbox(src, alt) {
+      lightboxImage.src = src;
+      lightboxImage.alt = alt || 'Full screen preview';
+      lightbox.classList.add('is-open');
+      lightbox.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('lightbox-open');
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove('is-open');
+      lightbox.setAttribute('aria-hidden', 'true');
+      lightboxImage.src = '';
+      document.body.classList.remove('lightbox-open');
+    }
+
+    previewImages.forEach(function (img) {
+      img.addEventListener('click', function () {
+        openLightbox(img.src, img.alt);
+      });
+    });
+
+    closeButton.addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', function (event) {
+      if (event.target === lightbox) {
+        closeLightbox();
+      }
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && lightbox.classList.contains('is-open')) {
+        closeLightbox();
+      }
+    });
+  })();
+</script>
+{% endblock %}

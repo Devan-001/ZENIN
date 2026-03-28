@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Purchase History – {{ customer.user.username }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Purchase History: {{ customer.user.username }}</h1>
+  <a href="{% url 'admin_manage_customers' %}" class="btn btn-outline">Back to Customers</a>
+</div>
+
+{% if orders %}
+  {% for order in orders %}
+  <div class="order-card">
+    <div class="order-card-header">
+      <span class="order-id">Order #{{ order.pk }}</span>
+      <span class="badge status-{{ order.status|lower }}">{{ order.get_status_display }}</span>
+      <span class="order-date">{{ order.placed_at|date:"M d, Y H:i" }}</span>
+    </div>
+    <div class="order-items-list">
+      {% for item in order.items.all %}
+      <div class="order-item-row">
+        <span>{{ item.product.title }} × {{ item.quantity }}</span>
+        <strong>₹{{ item.subtotal|floatformat:2 }}</strong>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="order-card-footer">
+      <span class="shipping-addr">Ship to: {{ order.shipping_address }}</span>
+      <strong>Total: ₹{{ order.total|floatformat:2 }}</strong>
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="empty-state"><p>No purchases found for this customer.</p></div>
+{% endif %}
+{% endblock %}

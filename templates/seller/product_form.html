@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Product – Zenin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>{{ action }} Product</h1>
+</div>
+
+<div class="form-card">
+  <form method="post" enctype="multipart/form-data" id="productForm" novalidate>
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="form-group">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}<small class="help-text">{{ field.help_text }}</small>{% endif %}
+      {% for err in field.errors %}<span class="field-error">{{ err }}</span>{% endfor %}
+    </div>
+    {% endfor %}
+
+    <div class="form-group">
+      <label for="{{ preview_form.preview_images.id_for_label }}">{{ preview_form.preview_images.label }}</label>
+      {{ preview_form.preview_images }}
+      {% if preview_form.preview_images.help_text %}
+        <small class="help-text">{{ preview_form.preview_images.help_text }}</small>
+      {% endif %}
+      {% for err in preview_form.preview_images.errors %}<span class="field-error">{{ err }}</span>{% endfor %}
+    </div>
+
+    {% if action == 'Edit' and product.preview_pages.exists %}
+      <div class="form-group">
+        <label>
+          <input type="checkbox" name="replace_previews" value="1" />
+          Replace existing preview pages with new uploads
+        </label>
+        <small class="help-text">Current previews: {{ product.preview_pages.count }} pages</small>
+      </div>
+    {% endif %}
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">{{ action }} Product</button>
+      <a href="{% url 'seller_products' %}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.getElementById('productForm').addEventListener('submit', function(e) {
+    let valid = true;
+    const price = parseFloat(document.getElementById('id_price').value);
+    const stock = parseInt(document.getElementById('id_stock').value);
+    if (isNaN(price) || price <= 0) {
+      alert('Price must be a positive number.');
+      valid = false;
+    }
+    if (isNaN(stock) || stock < 0) {
+      alert('Stock must be 0 or more.');
+      valid = false;
+    }
+    if (!valid) e.preventDefault();
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block title %}Invoice – Order #{{ order.pk }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  .invoice-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid #e0e4ea;
+    border-radius: 10px;
+    padding: 18px;
+    color: #111827;
+  }
+
+  .invoice-wrap strong {
+    color: #0f172a;
+  }
+
+  .invoice-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 20px;
+    margin-bottom: 14px;
+    color: #111827;
+  }
+
+  .bill-total-box {
+    margin-top: 16px;
+    border-top: 1px solid #e0e4ea;
+    padding-top: 12px;
+    max-width: 360px;
+    margin-left: auto;
+  }
+
+  .bill-total-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    color: #111827;
+  }
+
+  .data-table th {
+    color: #ffffff;
+  }
+
+  .data-table td {
+    color: #1f2937;
+  }
+
+  .bill-actions {
+    margin-top: 18px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  @media print {
+    @page {
+      size: A4;
+      margin: 12mm;
+    }
+
+    .navbar,
+    .footer,
+    .messages-container,
+    .bill-actions {
+      display: none !important;
+    }
+
+    .main-content {
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+
+    .invoice-wrap {
+      border: none;
+      box-shadow: none;
+      margin: 0;
+      max-width: 100%;
+      padding: 0;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Invoice</h1>
+  <p>Invoice {{ invoice_no }} | Order #{{ order.pk }} | {{ order.placed_at|date:"M d, Y h:i A" }}</p>
+</div>
+
+<div class="invoice-wrap">
+  <div class="invoice-meta">
+    <div><strong>Customer:</strong> {{ order.customer.user.get_full_name|default:order.customer.user.username }}</div>
+    <div><strong>Payment Mode:</strong> {{ order.get_payment_method_display }}</div>
+    <div style="grid-column: 1 / -1;"><strong>Shipping Address:</strong> {{ order.shipping_address }}</div>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Unit Price</th>
+        <th>Qty</th>
+        <th>Subtotal</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in order.items.all %}
+      <tr>
+        <td>{{ item.product.title }}</td>
+        <td>₹{{ item.unit_price }}</td>
+        <td>{{ item.quantity }}</td>
+        <td>₹{{ item.subtotal }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="bill-total-box">
+    <div class="bill-total-row">
+      <span>Items Total</span>
+      <strong>₹{{ totals.item_total }}</strong>
+    </div>
+    <div class="bill-total-row">
+      <span>Tax (GST {{ totals.tax_rate_percent }}%)</span>
+      <strong>₹{{ totals.tax_amount }}</strong>
+    </div>
+    <div class="bill-total-row">
+      <span>Delivery Charge</span>
+      <strong>₹{{ totals.shipping_fee }}</strong>
+    </div>
+    <div class="bill-total-row" style="border-top:1px solid #e0e4ea; padding-top:8px; margin-top:8px;">
+      <span>Grand Total</span>
+      <strong>₹{{ totals.grand_total }}</strong>
+    </div>
+  </div>
+
+  <div class="bill-actions">
+    <a href="{% url 'order_history' %}" class="btn btn-outline">Back to Orders</a>
+    <a href="{% url 'order_bill_pdf' order.pk %}" class="btn btn-outline">Download PDF Bill</a>
+    <button type="button" class="btn btn-primary" onclick="window.print()">Print Bill</button>
+  </div>
+</div>
+{% endblock %}

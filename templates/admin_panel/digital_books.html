@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Manage Digital Books – Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Digital Books</h1>
+  <a href="{% url 'digital_book_create' %}" class="btn btn-primary">+ Add New Book</a>
+</div>
+
+<section class="filter-bar">
+  <form method="get" class="filter-form">
+    <input
+      type="text"
+      name="q"
+      class="search-input"
+      placeholder="Search title or description"
+      value="{{ query }}"
+    >
+
+    <select name="category" class="select-input">
+      <option value="">All Categories</option>
+      {% for key, label in categories %}
+        <option value="{{ key }}" {% if selected_category == key %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+    <a href="{% url 'admin_digital_books' %}" class="btn btn-outline btn-sm">Reset</a>
+  </form>
+</section>
+
+{% if books %}
+<div class="table-wrapper">
+  <table class="data-table">
+    <thead>
+      <tr><th>Cover</th><th>Title</th><th>Category</th><th>Chapters</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for book in books %}
+      <tr>
+        <td>
+          {% if book.cover_image %}
+            <img src="{{ book.cover_image.url }}" class="table-thumb" alt="" />
+          {% else %}📖{% endif %}
+        </td>
+        <td>{{ book.title }}</td>
+        <td><span class="badge badge-{{ book.category|lower }}">{{ book.get_category_display }}</span></td>
+        <td>{{ book.chapter_count }}</td>
+        <td class="action-cell">
+          <a href="{% url 'chapter_list' book.pk %}" class="btn btn-sm btn-outline">Chapters</a>
+          <a href="{% url 'digital_book_edit' book.pk %}" class="btn btn-sm btn-outline">Edit</a>
+          <a href="{% url 'digital_book_delete' book.pk %}" class="btn btn-sm btn-danger">Delete</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <div class="empty-state">
+    {% if query or selected_category %}
+      <p>No books found for the selected filters.</p>
+      <a href="{% url 'admin_digital_books' %}" class="btn btn-outline">Clear Filters</a>
+    {% else %}
+      <p>No digital books added yet.</p>
+      <a href="{% url 'digital_book_create' %}" class="btn btn-primary">Add First Book</a>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}
